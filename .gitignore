@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
+
+# Env files
+.env*
+!.env.example
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editors
+.vscode/
+*.swp
+
+# TypeScript
+*.tsbuildinfo
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Prisma local dbs
+prisma/*.db
+prisma/*.sqlite
+
+# Testsprite temp artifacts
+testsprite_tests/tmp/
+
+# Build/coverage
+coverage/
+dist/

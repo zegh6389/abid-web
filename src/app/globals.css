@@ -1,0 +1,58 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Hero gradient: shocking red → orange → yellow */
+  --surface-hero-start: 255, 20, 60;    /* #ff143c vivid red */
+  --surface-hero-mid: 255, 193, 7;      /* #ffc107 amber (more yellowish) */
+  --surface-hero-end: 255, 242, 0;      /* #fff200 brighter yellow */
+  --surface-cta-start: 0, 194, 168;
+  --surface-cta-end: 163, 230, 53;
+  --glass-bg: 255, 255, 255;
+  --glass-alpha: 0.14;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root { --glass-bg: 17, 24, 39; --glass-alpha: 0.18; }
+}
+
+.glass { background: rgba(var(--glass-bg), var(--glass-alpha)); }
+.glass { @apply backdrop-blur-md border border-white/20 shadow-[0_8px_40px_rgba(0,0,0,0.18)]; }
+.glass--hero { @apply backdrop-blur-lg; }
+.gradient-hero {
+  background: linear-gradient(
+    135deg,
+    rgb(var(--surface-hero-start)) 0%,
+    rgb(var(--surface-hero-mid)) 40%,
+    rgb(var(--surface-hero-end)) 100%
+  );
+  background-size: 300% 300%;
+  animation: gradient-shift 8s ease-in-out infinite;
+}
+
+/* iOS-style frosted glass: higher blur + white gradient tint for readability */
+.glass-ios {
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.65),
+      rgba(255, 255, 255, 0.35)
+    );
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.18);
+}
+.gradient-cta { background: linear-gradient(135deg, rgb(var(--surface-cta-start)) 0%, rgb(var(--surface-cta-end)) 100%); }
+
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+:focus-visible { @apply outline-none ring-2 ring-offset-2 ring-yellow-500; }
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
+  .gradient-hero { animation: none; }
+}
