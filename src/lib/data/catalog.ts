@@ -67,30 +67,31 @@ export async function getFacetSummary({ category }: { category: string }) {
 }
 
 export async function getProductBySlug(slug: string): Promise<Product | null> {
-  try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/products/slug/${encodeURIComponent(slug)}`, {
-      // Force dynamic to avoid ISR caching bugs for admin-updated content
-      cache: 'no-store',
-    });
-    if (!res.ok) throw new Error('not ok');
-    const json = await res.json();
-    if (json?.product) {
-      const p = json.product;
-      const media = Array.isArray(p?.variants)
-        ? (p.variants.flatMap((v: any) => (Array.isArray(v.media) ? v.media.map((m: any) => m.url) : [])) as string[])
-        : [];
-      return {
-        id: p.id,
-        slug: p.slug,
-        title: p.title,
-        media: media.length ? media : ['/logo.png'],
-        price: Number(p.variants?.[0]?.price ?? 0),
-        brand: p.brand ?? undefined,
-        sizes: undefined,
-      } as Product;
-    }
-  } catch {
-    // fall through to mock
+  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/products/slug/${encodeURIComponent(slug)}`, {
+    // Force dynamic to avoid ISR caching bugs for admin-updated content
+    cache: 'no-store',
+  });
+
+  if (!res.ok) {
+    // Let Next.js error boundary handle it
+    throw new Error(`Failed to fetch product: ${res.statusText}`);
   }
-  return MOCK.find((p: Product) => p.slug === slug || p.id === slug) ?? null;
+
+  const json = await res.json();
+  if (json?.product) {
+    const p = json.product;
+    const media = Array.isArray(p?.variants)
+      ? (p.variants.flatMap((v: any) => (Array.isArray(v.media) ? v.media.map((m: any) => m.url) : [])) as string[])
+      : [];
+    return {
+      id: p.id,
+      slug: p.slug,
+      title: p.title,
+      media: media.length ? media : ['/logo.png'],
+      price: Number(p.variants?.[0]?.price ?? 0),
+      brand: p.brand ?? undefined,
+      sizes: undefined,
+    } as Product;
+  }
+  return null;
 }

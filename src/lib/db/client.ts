@@ -9,7 +9,8 @@ export async function getDb() {
     _db = g.prisma || new PrismaClient();
     if (process.env.NODE_ENV !== 'production') g.prisma = _db;
     return _db as InstanceType<typeof PrismaClient>;
-  } catch {
+  } catch (e) {
+    console.error('Failed to connect to db', e);
     return null as any;
   }
 }
