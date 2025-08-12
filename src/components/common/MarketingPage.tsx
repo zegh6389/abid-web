@@ -6,7 +6,7 @@ type Props = {
   heroImageSrc?: string;
   heroImageAlt?: string;
   heroImageClassName?: string;
-  children: React.ReactNode;
+  children?: React.ReactNode;
 };
 
 export default function MarketingPage({ title, subtitle, heroImageSrc, heroImageAlt, heroImageClassName, children }: Props) {

@@ -22,7 +22,23 @@ export async function POST(req: Request) {
   const bucket = process.env.AWS_S3_BUCKET as string;
   if (!bucket) return NextResponse.json({ error: 'bucket missing' }, { status: 500 });
   const content = typeof contentType === 'string' && contentType ? contentType : 'application/octet-stream';
-  const cmd = new PutObjectCommand({ Bucket: bucket, Key: key, ContentType: content });
+  // If bucket policy enforces SSE-KMS headers, include them in the presign
+  const sseKmsKeyId = process.env.AWS_S3_SSE_KMS_KEY_ID;
+  const cmd = new PutObjectCommand({
+    Bucket: bucket,
+    Key: key,
+    ContentType: content,
+    ...(sseKmsKeyId ? { ServerSideEncryption: 'aws:kms', SSEKMSKeyId: sseKmsKeyId } : {}),
+  });
   const url = await getSignedUrl(s3, cmd, { expiresIn: 60 });
-  return NextResponse.json({ url, publicUrl: `https://${bucket}.s3.${process.env.AWS_REGION}.amazonaws.com/${encodeURIComponent(key)}` });
+  const requiredHeaders: Record<string, string> = { 'content-type': content };
+  if (sseKmsKeyId) {
+    requiredHeaders['x-amz-server-side-encryption'] = 'aws:kms';
+    requiredHeaders['x-amz-server-side-encryption-aws-kms-key-id'] = sseKmsKeyId;
+  }
+  return NextResponse.json({
+    url,
+    publicUrl: `https://${bucket}.s3.${process.env.AWS_REGION}.amazonaws.com/${encodeURIComponent(key)}`,
+    requiredHeaders,
+  });
 }

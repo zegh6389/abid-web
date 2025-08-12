@@ -37,11 +37,11 @@ export default function Uploader({ variantId, className }: Props) {
       });
       if (!presignRes.ok) throw new Error('Failed to presign');
       const presign = await presignRes.json();
-
+      const requiredHeaders = presign.requiredHeaders as Record<string, string> | undefined;
       const putRes = await fetch(presign.url, {
         method: 'PUT',
         body: file,
-        headers: { 'content-type': file.type }
+        headers: requiredHeaders ?? { 'content-type': file.type }
       });
       if (!putRes.ok) throw new Error('Upload failed');
 
