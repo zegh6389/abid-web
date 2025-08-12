@@ -28,6 +28,8 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         price: v.price ?? 0,
         compareAt: v.compareAt ?? null,
         salePrice: v.salePrice ?? null,
+        saleStart: v.saleStart ?? null,
+        saleEnd: v.saleEnd ?? null,
         inventory: v.stock != null ? { create: { stock: Number(v.stock) || 0 } } : undefined
       },
       include: { inventory: true }

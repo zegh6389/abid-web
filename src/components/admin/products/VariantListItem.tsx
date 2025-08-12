@@ -10,6 +10,10 @@ const variantSchema = z.object({
   optionSize: z.string().optional(),
   optionColor: z.string().optional(),
   price: z.coerce.number().min(0, { message: 'Price must be positive' }),
+  compareAt: z.coerce.number().min(0).optional().nullable(),
+  salePrice: z.coerce.number().min(0).optional().nullable(),
+  saleStart: z.coerce.date().optional().nullable(),
+  saleEnd: z.coerce.date().optional().nullable(),
   stock: z.coerce.number().int({ message: 'Stock must be an integer' }),
 });
 
@@ -19,6 +23,10 @@ type State = {
     sku?: string[];
     price?: string[];
     stock?: string[];
+    compareAt?: string[];
+    salePrice?: string[];
+    saleStart?: string[];
+    saleEnd?: string[];
   };
   success?: boolean;
 };
@@ -30,6 +38,10 @@ async function updateVariant(productId: string, variantId: string, prevState: St
     optionSize: formData.get('optionSize'),
     optionColor: formData.get('optionColor'),
     price: formData.get('price'),
+    compareAt: formData.get('compareAt'),
+    salePrice: formData.get('salePrice'),
+    saleStart: formData.get('saleStart'),
+    saleEnd: formData.get('saleEnd'),
     stock: formData.get('stock'),
   });
 
@@ -105,7 +117,7 @@ export function VariantListItem({ product, variant: v }: { product: any, variant
     <li className="border rounded p-3 space-y-3 bg-white">
       {isEditing ? (
         <form action={formAction} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
               <label htmlFor={`sku-${v.id}`} className="text-sm font-medium text-gray-700">SKU</label>
               <input id={`sku-${v.id}`} name="sku" defaultValue={v.sku || ''} placeholder="SKU" className="mt-1 block w-full border rounded px-3 py-2" />
@@ -120,14 +132,31 @@ export function VariantListItem({ product, variant: v }: { product: any, variant
               <input id={`color-${v.id}`} name="optionColor" defaultValue={v.optionColor || ''} placeholder="Color" className="mt-1 block w-full border rounded px-3 py-2" />
             </div>
             <div>
+                <label htmlFor={`stock-${v.id}`} className="text-sm font-medium text-gray-700">Stock</label>
+                <input id={`stock-${v.id}`} name="stock" defaultValue={String(v.inventory?.stock ?? 0)} placeholder="Stock" type="number" className="mt-1 block w-full border rounded px-3 py-2" />
+                {state.errors?.stock && <p className="text-red-500 text-sm mt-1">{state.errors.stock.join(', ')}</p>}
+            </div>
+            <div>
               <label htmlFor={`price-${v.id}`} className="text-sm font-medium text-gray-700">Price</label>
               <input id={`price-${v.id}`} name="price" defaultValue={String(v.price ?? 0)} placeholder="Price" type="number" step="0.01" className="mt-1 block w-full border rounded px-3 py-2" />
               {state.errors?.price && <p className="text-red-500 text-sm mt-1">{state.errors.price.join(', ')}</p>}
             </div>
             <div>
-              <label htmlFor={`stock-${v.id}`} className="text-sm font-medium text-gray-700">Stock</label>
-              <input id={`stock-${v.id}`} name="stock" defaultValue={String(v.inventory?.stock ?? 0)} placeholder="Stock" type="number" className="mt-1 block w-full border rounded px-3 py-2" />
-              {state.errors?.stock && <p className="text-red-500 text-sm mt-1">{state.errors.stock.join(', ')}</p>}
+                <label htmlFor={`compareAt-${v.id}`} className="text-sm font-medium text-gray-700">Compare At Price</label>
+                <input id={`compareAt-${v.id}`} name="compareAt" defaultValue={String(v.compareAt ?? '')} placeholder="Compare At Price" type="number" step="0.01" className="mt-1 block w-full border rounded px-3 py-2" />
+            </div>
+            <div>
+                <label htmlFor={`salePrice-${v.id}`} className="text-sm font-medium text-gray-700">Sale Price</label>
+                <input id={`salePrice-${v.id}`} name="salePrice" defaultValue={String(v.salePrice ?? '')} placeholder="Sale Price" type="number" step="0.01" className="mt-1 block w-full border rounded px-3 py-2" />
+            </div>
+            <div></div>
+            <div>
+                <label htmlFor={`saleStart-${v.id}`} className="text-sm font-medium text-gray-700">Sale Start</label>
+                <input id={`saleStart-${v.id}`} name="saleStart" defaultValue={v.saleStart ? new Date(v.saleStart).toISOString().slice(0, 16) : ''} type="datetime-local" className="mt-1 block w-full border rounded px-3 py-2" />
+            </div>
+            <div>
+                <label htmlFor={`saleEnd-${v.id}`} className="text-sm font-medium text-gray-700">Sale End</label>
+                <input id={`saleEnd-${v.id}`} name="saleEnd" defaultValue={v.saleEnd ? new Date(v.saleEnd).toISOString().slice(0, 16) : ''} type="datetime-local" className="mt-1 block w-full border rounded px-3 py-2" />
             </div>
           </div>
           <div className="flex items-center gap-4">
@@ -146,6 +175,11 @@ export function VariantListItem({ product, variant: v }: { product: any, variant
             <div className="text-sm text-gray-600">
               Price: ${String(v.price)} | Stock: {v.inventory?.stock ?? 0}
             </div>
+            {v.salePrice && (
+                <div className="text-sm text-red-600">
+                    Sale: ${String(v.salePrice)} (was ${String(v.compareAt || v.price)})
+                </div>
+            )}
           </div>
           <div className="flex items-center gap-2">
             <button onClick={() => setIsEditing(true)} className="bg-gray-200 text-gray-800 rounded px-3 py-1 text-sm" type="button">Edit</button>

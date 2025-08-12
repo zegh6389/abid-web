@@ -31,6 +31,8 @@ export const CreateVariantSchema = z.object({
   price: z.coerce.number().nonnegative().default(0),
   compareAt: z.coerce.number().nonnegative().optional().nullable(),
   salePrice: z.coerce.number().nonnegative().optional().nullable(),
+  saleStart: z.coerce.date().optional().nullable(),
+  saleEnd: z.coerce.date().optional().nullable(),
   stock: z.coerce.number().int().nonnegative().optional(),
 });
 
@@ -44,6 +46,8 @@ export const UpdateVariantSchema = z.object({
   price: z.coerce.number().nonnegative().optional(),
   compareAt: z.coerce.number().nonnegative().optional().nullable(),
   salePrice: z.coerce.number().nonnegative().optional().nullable(),
+  saleStart: z.coerce.date().optional().nullable(),
+  saleEnd: z.coerce.date().optional().nullable(),
   cost: z.coerce.number().nonnegative().optional().nullable(),
   msrp: z.coerce.number().nonnegative().optional().nullable(),
   stock: z.coerce.number().int().nonnegative().optional(),

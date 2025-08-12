@@ -10,6 +10,10 @@ const variantSchema = z.object({
   optionSize: z.string().optional(),
   optionColor: z.string().optional(),
   price: z.coerce.number().min(0, { message: 'Price must be positive' }),
+  compareAt: z.coerce.number().min(0).optional().nullable(),
+  salePrice: z.coerce.number().min(0).optional().nullable(),
+  saleStart: z.coerce.date().optional().nullable(),
+  saleEnd: z.coerce.date().optional().nullable(),
   stock: z.coerce.number().int({ message: 'Stock must be an integer' }),
 });
 
@@ -19,6 +23,10 @@ type State = {
     sku?: string[];
     price?: string[];
     stock?: string[];
+    compareAt?: string[];
+    salePrice?: string[];
+    saleStart?: string[];
+    saleEnd?: string[];
   };
 };
 
@@ -29,6 +37,10 @@ async function createVariant(productId: string, prevState: State, formData: Form
     optionSize: formData.get('optionSize'),
     optionColor: formData.get('optionColor'),
     price: formData.get('price'),
+    compareAt: formData.get('compareAt'),
+    salePrice: formData.get('salePrice'),
+    saleStart: formData.get('saleStart'),
+    saleEnd: formData.get('saleEnd'),
     stock: formData.get('stock'),
   });
 
@@ -76,7 +88,7 @@ export function VariantCreator({ productId }: { productId: string }) {
   return (
     <form ref={formRef} action={formAction} className="mt-6 p-4 border rounded bg-gray-50 space-y-4">
       <h3 className="font-semibold">Add New Variant</h3>
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div>
           <label htmlFor="sku" className="block text-sm font-medium text-gray-700">SKU</label>
           <input id="sku" name="sku" placeholder="SKU" className="mt-1 block w-full border rounded px-3 py-2" />
@@ -91,14 +103,31 @@ export function VariantCreator({ productId }: { productId: string }) {
           <input id="optionColor" name="optionColor" placeholder="Color" className="mt-1 block w-full border rounded px-3 py-2" />
         </div>
         <div>
+          <label htmlFor="stock" className="block text-sm font-medium text-gray-700">Stock</label>
+          <input id="stock" name="stock" placeholder="Stock" type="number" className="mt-1 block w-full border rounded px-3 py-2" />
+          {state.errors?.stock && <p className="text-red-500 text-sm mt-1">{state.errors.stock.join(', ')}</p>}
+        </div>
+        <div>
           <label htmlFor="price" className="block text-sm font-medium text-gray-700">Price</label>
           <input id="price" name="price" placeholder="Price" type="number" step="0.01" className="mt-1 block w-full border rounded px-3 py-2" />
           {state.errors?.price && <p className="text-red-500 text-sm mt-1">{state.errors.price.join(', ')}</p>}
         </div>
         <div>
-          <label htmlFor="stock" className="block text-sm font-medium text-gray-700">Stock</label>
-          <input id="stock" name="stock" placeholder="Stock" type="number" className="mt-1 block w-full border rounded px-3 py-2" />
-          {state.errors?.stock && <p className="text-red-500 text-sm mt-1">{state.errors.stock.join(', ')}</p>}
+          <label htmlFor="compareAt" className="block text-sm font-medium text-gray-700">Compare At Price</label>
+          <input id="compareAt" name="compareAt" placeholder="Compare At Price" type="number" step="0.01" className="mt-1 block w-full border rounded px-3 py-2" />
+        </div>
+        <div>
+          <label htmlFor="salePrice" className="block text-sm font-medium text-gray-700">Sale Price</label>
+          <input id="salePrice" name="salePrice" placeholder="Sale Price" type="number" step="0.01" className="mt-1 block w-full border rounded px-3 py-2" />
+        </div>
+        <div></div>
+        <div>
+          <label htmlFor="saleStart" className="block text-sm font-medium text-gray-700">Sale Start</label>
+          <input id="saleStart" name="saleStart" type="datetime-local" className="mt-1 block w-full border rounded px-3 py-2" />
+        </div>
+        <div>
+          <label htmlFor="saleEnd" className="block text-sm font-medium text-gray-700">Sale End</label>
+          <input id="saleEnd" name="saleEnd" type="datetime-local" className="mt-1 block w-full border rounded px-3 py-2" />
         </div>
       </div>
       <SubmitButton />
