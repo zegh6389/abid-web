@@ -1,32 +1,96 @@
-import { revalidatePath } from 'next/cache';
+'use client';
 
-async function createProduct(formData: FormData) {
+import { useFormState, useFormStatus } from 'react-dom';
+import { revalidatePath } from 'next/cache';
+import { z } from 'zod';
+import { useEffect, useState } from 'react';
+
+const productSchema = z.object({
+  slug: z.string().trim().min(1, { message: 'Slug is required' }),
+  title: z.string().trim().min(1, { message: 'Title is required' }),
+});
+
+type State = {
+  message?: string | null;
+  errors?: {
+    slug?: string[];
+    title?: string[];
+  };
+};
+
+async function createProduct(prevState: State, formData: FormData): Promise<State> {
   'use server';
-  const slug = String(formData.get('slug') || '').trim();
-  const title = String(formData.get('title') || '').trim();
-  await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/products`, {
+  const validatedFields = productSchema.safeParse({
+    slug: formData.get('slug'),
+    title: formData.get('title'),
+  });
+
+  if (!validatedFields.success) {
+    return {
+      errors: validatedFields.error.flatten().fieldErrors,
+      message: 'Validation failed.',
+    };
+  }
+
+  const { slug, title } = validatedFields.data;
+  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/products`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ slug, title })
   });
+
+  if (!res.ok) {
+    return { message: 'Failed to create product.' };
+  }
+
   revalidatePath('/admin/products');
+  return { message: 'Product created successfully.' };
 }
 
 async function fetchProducts() {
   const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/products`, { cache: 'no-store' });
+  if (!res.ok) return [];
   const data = await res.json();
   const list = Array.isArray(data) ? data : data?.products;
   return (Array.isArray(list) ? list : []) as Array<{ id: string; slug: string; title: string }>;
 }
 
-export default async function AdminProductsPage() {
-  const products = await fetchProducts();
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  return (
+    <button className="bg-black text-white px-4 py-2 rounded" type="submit" disabled={pending}>
+      {pending ? 'Creating...' : 'Create'}
+    </button>
+  );
+}
+
+export default function AdminProductsPage() {
+  const [products, setProducts] = useState<Array<{ id: string; slug: string; title: string }>>([]);
+  const [state, formAction] = useFormState(createProduct, { message: null, errors: {} });
+
+  useEffect(() => {
+    fetchProducts().then(setProducts);
+  }, []);
+
+  useEffect(() => {
+    if (state.message?.includes('successfully')) {
+      fetchProducts().then(setProducts);
+    }
+  }, [state]);
+
   return (
     <div className="space-y-6">
-      <form action={createProduct} className="glass p-4 rounded grid grid-cols-1 md:grid-cols-3 gap-3">
-        <input name="slug" className="border rounded px-3 py-2" placeholder="slug" />
-        <input name="title" className="border rounded px-3 py-2" placeholder="title" />
-        <button className="bg-black text-white px-4 py-2 rounded" type="submit">Create</button>
+      <form action={formAction} className="glass p-4 rounded grid grid-cols-1 md:grid-cols-3 gap-3 items-start">
+        <div>
+          <input name="slug" className="border rounded px-3 py-2 w-full" placeholder="slug" />
+          {state.errors?.slug && <p className="text-red-500 text-sm mt-1">{state.errors.slug.join(', ')}</p>}
+        </div>
+        <div>
+          <input name="title" className="border rounded px-3 py-2 w-full" placeholder="title" />
+          {state.errors?.title && <p className="text-red-500 text-sm mt-1">{state.errors.title.join(', ')}</p>}
+        </div>
+        <SubmitButton />
+        {state.message && !state.errors && <p className="text-green-500 text-sm">{state.message}</p>}
       </form>
 
       <div className="grid gap-2">
