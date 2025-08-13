@@ -14,6 +14,12 @@ export function Header() {
   const [openTab, setOpenTab] = useState<string | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
   const { count } = useCart();
+  const [mobileMenu, setMobileMenu] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <header className="sticky top-0 z-50">
@@ -31,6 +37,7 @@ export function Header() {
             <span className="font-bold text-lg hidden sm:inline">Margin Kidz</span>
           </Link>
 
+          {/* Desktop nav */}
           <nav className="hidden md:flex gap-6 items-center relative">
             {TABS.map((tab) => (
               <button
@@ -56,6 +63,17 @@ export function Header() {
           </nav>
 
           <div className="flex items-center gap-3">
+            {/* Mobile hamburger */}
+            <button
+              type="button"
+              aria-label="Menu"
+              className="md:hidden rounded-full p-2 border border-black/10"
+              onClick={() => setMobileMenu((v) => !v)}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5">
+                <path d="M3.75 6.75h16.5v1.5H3.75v-1.5Zm0 4.5h16.5v1.5H3.75v-1.5Zm0 4.5h16.5v1.5H3.75v-1.5Z" />
+              </svg>
+            </button>
             {/* Search */}
             <button
               type="button"
@@ -79,9 +97,13 @@ export function Header() {
 
             <button className="px-3 py-1 rounded-full text-white gradient-cta relative" onClick={() => setCartOpen(true)}>
               Cart
-              {count > 0 && (
-                <span className="absolute -top-2 -right-2 h-5 min-w-[1.25rem] px-1 rounded-full bg-red-600 text-white text-xs flex items-center justify-center">{count}</span>
-              )}
+              <span
+                className={`absolute -top-2 -right-2 h-5 min-w-[1.25rem] px-1 rounded-full bg-red-600 text-white text-xs flex items-center justify-center ${mounted && count > 0 ? '' : 'hidden'}`}
+                aria-hidden={!mounted || count <= 0}
+                suppressHydrationWarning
+              >
+                {mounted ? count : ''}
+              </span>
             </button>
           </div>
         </div>
@@ -103,6 +125,40 @@ export function Header() {
                 <MegaMenu tab={openTab} />
               </div>
             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Mobile menu drawer */}
+      <AnimatePresence>
+        {mobileMenu && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[60] bg-black/40 md:hidden"
+            onClick={() => setMobileMenu(false)}
+          >
+            <motion.div
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ duration: 0.2 }}
+              className="absolute left-0 top-0 h-full w-72 bg-white p-4 shadow-xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="mb-4 font-semibold">Browse</div>
+              <div className="grid gap-2">
+                {Array.from(TABS).map((tab) => (
+                  <a key={tab} href={`/${tab}`} className="capitalize py-2 px-2 rounded hover:bg-gray-50" onClick={() => setMobileMenu(false)}>
+                    {tab}
+                  </a>
+                ))}
+                <a href="/about" className="py-2 px-2 rounded hover:bg-gray-50" onClick={() => setMobileMenu(false)}>About</a>
+                <a href="/contact" className="py-2 px-2 rounded hover:bg-gray-50" onClick={() => setMobileMenu(false)}>Contact</a>
+                <a href="/faq" className="py-2 px-2 rounded hover:bg-gray-50" onClick={() => setMobileMenu(false)}>FAQ</a>
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

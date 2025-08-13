@@ -1,8 +1,8 @@
 'use client';
 
 import { useFormState, useFormStatus } from 'react-dom';
-import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { createProduct } from './actions';
 import { useEffect, useState } from 'react';
 
 const productSchema = z.object({
@@ -18,34 +18,7 @@ type State = {
   };
 };
 
-async function createProduct(prevState: State, formData: FormData): Promise<State> {
-  'use server';
-  const validatedFields = productSchema.safeParse({
-    slug: formData.get('slug'),
-    title: formData.get('title'),
-  });
-
-  if (!validatedFields.success) {
-    return {
-      errors: validatedFields.error.flatten().fieldErrors,
-      message: 'Validation failed.',
-    };
-  }
-
-  const { slug, title } = validatedFields.data;
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/products`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ slug, title })
-  });
-
-  if (!res.ok) {
-    return { message: 'Failed to create product.' };
-  }
-
-  revalidatePath('/admin/products');
-  return { message: 'Product created successfully.' };
-}
+// moved to server actions in ./actions
 
 async function fetchProducts() {
   const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/products`, { cache: 'no-store' });
@@ -66,7 +39,11 @@ function SubmitButton() {
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<Array<{ id: string; slug: string; title: string }>>([]);
-  const [state, formAction] = useFormState(createProduct, { message: null, errors: {} });
+  const initialState: State = { message: '', errors: {} };
+  const [state, formAction] = useFormState(
+    createProduct as unknown as (state: State, formData: FormData) => Promise<State>,
+    initialState,
+  );
 
   useEffect(() => {
     fetchProducts().then(setProducts);

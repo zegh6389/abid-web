@@ -2,6 +2,9 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { ReactNode } from 'react';
 import RootShell from '@/components/shell/RootShell';
+import { headers } from 'next/headers';
+import { DeviceProvider } from '@/components/shell/DeviceContext';
+import { isMobileUserAgent } from '@/lib/utils/device';
 
 export const metadata: Metadata = {
   metadataBase: new URL('http://localhost:3000'),
@@ -10,10 +13,14 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
+  const ua = headers().get('user-agent');
+  const initialIsMobile = isMobileUserAgent(ua);
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="bg-white text-black antialiased">
-        <RootShell>{children}</RootShell>
+        <DeviceProvider initialIsMobile={initialIsMobile}>
+          <RootShell>{children}</RootShell>
+        </DeviceProvider>
       </body>
     </html>
   );

@@ -1,8 +1,8 @@
 'use client';
 
 import { useFormState, useFormStatus } from 'react-dom';
-import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { deleteProduct, updateProduct } from '@/app/admin/products/actions';
 
 const productSchema = z.object({
   title: z.string().trim().min(1, { message: 'Title is required' }),
@@ -19,42 +19,6 @@ type State = {
     title?: string[];
   };
 };
-
-async function updateProduct(id: string, prevState: State, formData: FormData): Promise<State> {
-  'use server';
-  const validatedFields = productSchema.safeParse({
-    title: formData.get('title'),
-    subtitle: formData.get('subtitle'),
-    description: formData.get('description'),
-    seoTitle: formData.get('seoTitle'),
-    seoDesc: formData.get('seoDesc'),
-    tags: formData.get('tags'),
-  });
-
-  if (!validatedFields.success) {
-    return {
-      errors: validatedFields.error.flatten().fieldErrors,
-      message: 'Validation failed.',
-    };
-  }
-
-  await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/products/${id}`, {
-    method: 'PATCH',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify(validatedFields.data)
-  });
-
-  revalidatePath(`/admin/products/${id}`);
-  return { message: 'Product updated successfully.' };
-}
-
-async function deleteProduct(id: string) {
-  'use server';
-  await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/products/${id}`, { method: 'DELETE' });
-  revalidatePath('/admin/products');
-  const { redirect } = await import('next/navigation');
-  redirect('/admin/products');
-}
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -75,9 +39,9 @@ function DeleteButton() {
 }
 
 export function ProductDetailForm({ product }: { product: any }) {
-  const updateProductWithId = updateProduct.bind(null, product.id);
+  const updateProductWithId = updateProduct.bind(null, product.id) as unknown as (state: State, formData: FormData) => Promise<State>;
   const deleteProductWithId = deleteProduct.bind(null, product.id);
-  const [state, formAction] = useFormState(updateProductWithId, { message: null, errors: {} });
+  const [state, formAction] = useFormState(updateProductWithId, { message: '', errors: {} as Record<string, string[]> });
 
   return (
     <div className="space-y-6">

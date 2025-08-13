@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
 import { z } from 'zod';
 import Uploader from '@/components/admin/Uploader';
+import { deleteMedia, deleteVariant, updateMedia, updateVariant } from '@/app/admin/products/actions';
 
 const variantSchema = z.object({
   sku: z.string().trim().min(1, { message: 'SKU is required' }),
@@ -31,68 +32,6 @@ type State = {
   success?: boolean;
 };
 
-async function updateVariant(productId: string, variantId: string, prevState: State, formData: FormData): Promise<State> {
-  'use server';
-  const validatedFields = variantSchema.safeParse({
-    sku: formData.get('sku'),
-    optionSize: formData.get('optionSize'),
-    optionColor: formData.get('optionColor'),
-    price: formData.get('price'),
-    compareAt: formData.get('compareAt'),
-    salePrice: formData.get('salePrice'),
-    saleStart: formData.get('saleStart'),
-    saleEnd: formData.get('saleEnd'),
-    stock: formData.get('stock'),
-  });
-
-  if (!validatedFields.success) {
-    return {
-      errors: validatedFields.error.flatten().fieldErrors,
-      message: 'Validation failed.',
-      success: false,
-    };
-  }
-
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/variants/${variantId}`, {
-    method: 'PATCH',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify(validatedFields.data)
-  });
-
-  if (!res.ok) {
-    return { message: 'Failed to update variant.', success: false };
-  }
-
-  const { revalidatePath } = await import('next/cache');
-  revalidatePath(`/admin/products/${productId}`);
-  return { message: 'Variant updated successfully.', success: true };
-}
-
-async function deleteVariant(productId: string, variantId: string) {
-  'use server';
-  await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/variants/${variantId}`, { method: 'DELETE' });
-  const { revalidatePath } = await import('next/cache');
-  revalidatePath(`/admin/products/${productId}`);
-}
-
-async function updateMedia(productId: string, mediaId: string, isPrimary: boolean) {
-  'use server';
-  await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/media/${mediaId}`, {
-    method: 'PATCH',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ isPrimary })
-  });
-  const { revalidatePath } = await import('next/cache');
-  revalidatePath(`/admin/products/${productId}`);
-}
-
-async function deleteMedia(productId: string, mediaId: string) {
-  'use server';
-  await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/media/${mediaId}`, { method: 'DELETE' });
-  const { revalidatePath } = await import('next/cache');
-  revalidatePath(`/admin/products/${productId}`);
-}
-
 function SubmitButton() {
     const { pending } = useFormStatus();
     return (
@@ -104,7 +43,8 @@ function SubmitButton() {
 
 export function VariantListItem({ product, variant: v }: { product: any, variant: any }) {
   const [isEditing, setIsEditing] = useState(false);
-  const [state, formAction] = useFormState(updateVariant.bind(null, product.id, v.id), { message: null, errors: {}, success: false });
+  const updateVariantWithIds = updateVariant.bind(null, product.id, v.id) as unknown as (state: State, formData: FormData) => Promise<State>;
+  const [state, formAction] = useFormState(updateVariantWithIds, { message: '', errors: {} as Record<string, string[]>, success: false });
   const deleteVariantAction = deleteVariant.bind(null, product.id, v.id);
 
   useEffect(() => {

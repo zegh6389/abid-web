@@ -1,9 +1,9 @@
 'use client';
 
 import { useFormState, useFormStatus } from 'react-dom';
-import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { useRef, useEffect } from 'react';
+import { createVariant } from '@/app/admin/products/actions';
 
 const variantSchema = z.object({
   sku: z.string().trim().min(1, { message: 'SKU is required' }),
@@ -30,41 +30,6 @@ type State = {
   };
 };
 
-async function createVariant(productId: string, prevState: State, formData: FormData): Promise<State> {
-  'use server';
-  const validatedFields = variantSchema.safeParse({
-    sku: formData.get('sku'),
-    optionSize: formData.get('optionSize'),
-    optionColor: formData.get('optionColor'),
-    price: formData.get('price'),
-    compareAt: formData.get('compareAt'),
-    salePrice: formData.get('salePrice'),
-    saleStart: formData.get('saleStart'),
-    saleEnd: formData.get('saleEnd'),
-    stock: formData.get('stock'),
-  });
-
-  if (!validatedFields.success) {
-    return {
-      errors: validatedFields.error.flatten().fieldErrors,
-      message: 'Validation failed.',
-    };
-  }
-
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/products/${productId}/variants`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify(validatedFields.data)
-  });
-
-  if (!res.ok) {
-    return { message: 'Failed to create variant.' };
-  }
-
-  revalidatePath(`/admin/products/${productId}`);
-  return { message: 'Variant created successfully.' };
-}
-
 function SubmitButton() {
   const { pending } = useFormStatus();
   return (
@@ -76,8 +41,8 @@ function SubmitButton() {
 
 export function VariantCreator({ productId }: { productId: string }) {
   const formRef = useRef<HTMLFormElement>(null);
-  const createVariantWithId = createVariant.bind(null, productId);
-  const [state, formAction] = useFormState(createVariantWithId, { message: null, errors: {} });
+  const createVariantWithId = createVariant.bind(null, productId) as unknown as (state: State, formData: FormData) => Promise<State>;
+  const [state, formAction] = useFormState(createVariantWithId, { message: '', errors: {} as Record<string, string[]> });
 
   useEffect(() => {
     if (state.message?.includes('successfully')) {
