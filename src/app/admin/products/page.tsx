@@ -35,6 +35,7 @@ export default async function AdminProductsPage() {
             <div>
               <div className="font-medium">{p.title}</div>
               <div className="text-xs text-gray-500">/{p.slug}</div>
+              
             </div>
             <span className="text-blue-600 text-sm">Edit</span>
           </a>

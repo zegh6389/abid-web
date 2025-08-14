@@ -1,11 +1,14 @@
 import { getDb } from '@/lib/db/client';
+import { verifyHmacSha256 } from '@/lib/utils/webhook';
 
 export async function POST(req: Request) {
   const prisma = await getDb();
   if (!prisma) return new Response(JSON.stringify({ error: 'db' }), { status: 500 });
 
-  // In a real impl, verify HMAC using SPOCKET_WEBHOOK_SECRET
-  const body = await req.json();
+  const raw = await req.text();
+  const ok = verifyHmacSha256(raw, (req.headers.get('x-signature') || req.headers.get('x-hub-signature-256') || undefined) as any, process.env.SPOCKET_WEBHOOK_SECRET);
+  if (!ok) return new Response('unauthorized', { status: 401 });
+  const body = JSON.parse(raw || '{}');
   const { supplierOrderId, tracking_number, status, carrier } = body || {};
 
   if (!supplierOrderId) return new Response(JSON.stringify({ ok: false }), { status: 400 });

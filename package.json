@@ -27,8 +27,8 @@
   "aws:whoami": "node scripts/test-sts.mjs",
   "presign:test": "node scripts/test-presign.mjs",
   "presign:test:local": "node scripts/test-presign-local.mjs",
-  "sync:catalog": "node -e \"import('./dist/lib/jobs/catalogSync.js').then(m=>m.default())\"",
-  "sync:orders": "node -e \"import('./dist/lib/jobs/orderStatusSync.js').then(m=>m.default())\""
+  "sync:catalog": "tsx src/lib/jobs/catalogSync.ts",
+  "sync:orders": "tsx src/lib/jobs/orderStatusSync.ts"
   ,"ping": "node scripts/ping.mjs"
   },
   "dependencies": {
@@ -46,7 +46,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "stripe": "^16.5.0",
-    "zod": "^3.23.8"
+  "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
@@ -61,6 +61,7 @@
     "postcss": "^8.4.38",
     "prisma": "^5.17.0",
     "tailwindcss": "^3.4.9",
-  "typescript": "5.5.4"
+  "typescript": "5.5.4",
+  "tsx": "^4.16.2"
   }
 }
