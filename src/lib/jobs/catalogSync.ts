@@ -1,10 +1,14 @@
-import { SupplierRegistry } from '../suppliers';
+// Lazy import SupplierRegistry at call-time to avoid constructing adapters on module load
+// which can throw when env vars are missing in unrelated requests.
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
+import type { SupplierAdapter } from '../suppliers/types';
 import { getDb } from '../db/client';
 
 export default async function runCatalogSync() {
   const prisma = await getDb();
   if (!prisma) throw new Error('DB not initialized');
 
+  const { SupplierRegistry } = await import('../suppliers') as unknown as { SupplierRegistry: Record<string, SupplierAdapter> };
   for (const [key, adapter] of Object.entries(SupplierRegistry)) {
     let pageToken: string | undefined = undefined;
     do {

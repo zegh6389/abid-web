@@ -1,52 +1,52 @@
 [
   {
     "id": "TC001",
-    "title": "health api should return server status",
-    "description": "Verify that the GET /api/health endpoint returns a 200 status with a JSON object containing { ok: true } indicating the server is alive."
+    "title": "health api health status check",
+    "description": "Verify that the /api/health endpoint returns a 200 OK status indicating the server is alive and responsive."
   },
   {
     "id": "TC002",
-    "title": "products api should list and create_products",
-    "description": "Test the GET /api/products endpoint returns a list of products and the POST /api/products endpoint creates a new product with required fields and returns the created product."
+    "title": "products api list and manage products",
+    "description": "Test the products API endpoints to ensure products and variants can be listed, retrieved by id or slug, updated, and managed correctly."
   },
   {
     "id": "TC003",
-    "title": "products api should get_update_delete_product_by_id",
-    "description": "Verify GET, PATCH, and DELETE operations on /api/products/{id} for retrieving, updating with valid data, and deleting a product by id, including handling of invalid ids and error responses."
+    "title": "orders api internal supplier order placement",
+    "description": "Validate the internal API endpoint /api/internal/create-supplier-order correctly groups order items by supplier and places supplier orders with external supplier systems."
   },
   {
     "id": "TC004",
-    "title": "products api should create_variant_for_product",
-    "description": "Test POST /api/products/{id}/variants to create a product variant with required fields and validate error handling for invalid input."
+    "title": "payments api checkout and webhook processing",
+    "description": "Test the payments API endpoints for creating checkout sessions and processing payment webhooks to ensure orders are correctly updated upon payment events."
   },
   {
     "id": "TC005",
-    "title": "variants api should update_and_delete_variant",
-    "description": "Verify PATCH and DELETE operations on /api/variants/{variantId} to update variant details and inventory, and delete a variant, including validation and error scenarios."
+    "title": "collections api crud operations",
+    "description": "Verify CRUD operations on product collections and the ability to attach or detach products from collections via the collections API."
   },
   {
     "id": "TC006",
-    "title": "media api should create_media_for_variant",
-    "description": "Test POST /api/variants/{variantId}/media to create a media item for a variant with required url and optional fields, validating success and error responses."
+    "title": "uploads presign api generate s3 presigned url",
+    "description": "Test the uploads presign API to ensure it generates valid S3 presigned URLs for file uploads with correct permissions and expiration."
   },
   {
     "id": "TC007",
-    "title": "uploads presign api should generate_s3_presigned_url",
-    "description": "Verify POST /api/uploads/presign generates a valid AWS S3 presigned URL for given key and contentType, and handles missing bucket or bad requests properly."
+    "title": "admin auth api login logout and session info",
+    "description": "Validate admin authentication endpoints for login, logout, session retrieval, and password upgrade functionalities."
   },
   {
     "id": "TC008",
-    "title": "admin auth api should login_and_logout_admin",
-    "description": "Test POST /api/admin/login for successful login with valid credentials and failure with invalid credentials, and POST/GET /api/admin/logout to clear session cookies."
+    "title": "sentinel api db off sentinel file management",
+    "description": "Test the sentinel API endpoints to create, delete, and check the DB_OFF sentinel file to simulate database unavailability scenarios."
   },
   {
     "id": "TC009",
-    "title": "admin auth api should handle_deprecated_password_upgrade",
-    "description": "Verify POST /api/admin/upgrade-password returns 410 Gone status indicating the endpoint is deprecated."
+    "title": "supplier webhooks hmac verification and update",
+    "description": "Verify that webhook endpoints for Spocket, AutoDS, and Modalyst validate incoming requests using HMAC signatures and update order status and tracking data accordingly."
   },
   {
     "id": "TC010",
-    "title": "sentinel api should manage_db_off_sentinel_file",
-    "description": "Test GET and POST methods on /api/sentinel/create, /api/sentinel/delete, and GET /api/sentinel/status to create, delete, and check the DB_OFF sentinel file for simulating no-database scenarios."
+    "title": "cron api trigger catalog sync job",
+    "description": "Test the cron API endpoint to trigger the catalog synchronization job that fetches and upserts product data from all registered suppliers."
   }
 ]

@@ -15,14 +15,14 @@ export class SpocketAdapter implements SupplierAdapter {
   private webhookSecret: string;
 
   constructor(apiKey: string, webhookSecret: string) {
-    if (!apiKey || !webhookSecret) {
-      throw new Error('Spocket API key and webhook secret are required');
-    }
     this.apiKey = apiKey;
     this.webhookSecret = webhookSecret;
   }
 
   private async getAuthHeaders() {
+    if (!this.apiKey || !this.webhookSecret) {
+      throw new Error('Spocket API key and webhook secret are required');
+    }
     return {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${this.apiKey}`,

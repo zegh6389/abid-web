@@ -6,7 +6,6 @@ import type {
   OrderStatusResponse,
 } from './types';
 import { getDb } from '@/lib/db/client';
-import { SupplierType } from '@prisma/client';
 
 const API_BASE = 'https://developers.cjdropshipping.com/api2.0/v1';
 
@@ -31,15 +30,37 @@ export class CjAdapter implements SupplierAdapter {
     this.clientSecret = clientSecret;
   }
 
+  // Fallback in-memory cache when DB is unavailable
+  private static memoryAuth: CjAuth | null = null;
+
   private async getAuthToken(): Promise<string> {
     const prisma = await getDb();
-    if (!prisma) throw new Error('DB client not available');
 
-    const supplier = await prisma.supplier.findUnique({
-      where: { name: this.name },
-    });
+    // Helper getters/setters using DB if available else memory
+    const readAuth = async (): Promise<CjAuth | null> => {
+      if (!prisma) return CjAdapter.memoryAuth;
+      const supplier = await prisma.supplier.findUnique({ where: { name: this.name } });
+      return (supplier?.authJson as CjAuth) || null;
+    };
+    const writeAuth = async (auth: CjAuth): Promise<void> => {
+      if (!prisma) {
+        CjAdapter.memoryAuth = auth;
+        return;
+      }
+      await prisma.supplier.upsert({
+        where: { name: this.name },
+        update: { authJson: auth as any },
+        create: {
+          name: this.name,
+          // Use string literal to avoid Prisma enum import mismatch at build time
+          type: 'CJDROPSHIPPING' as any,
+          authJson: auth as any,
+          active: true,
+        },
+      });
+    };
 
-    let auth = supplier?.authJson as CjAuth | null;
+    let auth = await readAuth();
 
     // Check if token exists and is not expired
     if (auth?.accessToken && new Date(auth.accessTokenExpiryDate) > new Date()) {
@@ -50,30 +71,17 @@ export class CjAdapter implements SupplierAdapter {
     if (auth?.refreshToken && new Date(auth.refreshTokenExpiryDate) > new Date()) {
       try {
         const refreshedAuth = await this.refreshAccessToken(auth.refreshToken);
-        await prisma.supplier.update({
-          where: { name: this.name },
-          data: { authJson: refreshedAuth as any },
-        });
+        await writeAuth(refreshedAuth);
         return refreshedAuth.accessToken;
       } catch (error) {
-        console.error('Failed to refresh CJDropshipping token, getting a new one.', error);
+        console.warn('CJ token refresh failed; acquiring new token. Reason:', (error as any)?.message || error);
         // Fall through to get a new token if refresh fails
       }
     }
 
     // If no refresh token or refresh failed, get a new access token
     const newAuth = await this.getNewAccessToken();
-    await prisma.supplier.upsert({
-      where: { name: this.name },
-      update: { authJson: newAuth as any },
-      create: {
-        name: this.name,
-        type: SupplierType.CJDROPSHIPPING,
-        authJson: newAuth as any,
-        active: true,
-      },
-    });
-
+    await writeAuth(newAuth);
     return newAuth.accessToken;
   }
 
@@ -86,7 +94,10 @@ export class CjAdapter implements SupplierAdapter {
         password: this.clientSecret,
       }),
     });
-
+    if (response.status === 429) {
+      const body = await response.text();
+      throw new Error(`CJDropshipping auth rate limited (429). CJ allows 1 token request per 300 seconds. Please wait 5 minutes before retrying. Details: ${body}`);
+    }
     if (!response.ok) {
       throw new Error(`CJDropshipping auth error: ${response.status} ${await response.text()}`);
     }
@@ -162,7 +173,7 @@ export class CjAdapter implements SupplierAdapter {
       shippingProvince: payload.address.state,
       shippingCity: payload.address.city,
       shippingPhone: 'N/A', // Assuming phone is not available in our DTO
-      shippingCustomerName: payload.address.name,
+  shippingCustomerName: payload.name,
       shippingAddress: payload.address.line1,
       shippingAddress2: payload.address.line2,
       logisticName: 'CJPacket Ordinary', // Using a default as per docs

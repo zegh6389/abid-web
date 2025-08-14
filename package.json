@@ -3,11 +3,12 @@
   "private": true,
   "type": "module",
   "scripts": {
-  "dev": "next dev",
-  "dev:host": "next dev -H 127.0.0.1 -p 3000",
+    "dev": "next dev",
+    "dev:host": "next dev -H 127.0.0.1 -p 3000",
+    "dev:public": "next dev -H 0.0.0.0 -p 3000",
     "build": "next build",
-  "start": "next start",
-  "start:3001": "next start -H 127.0.0.1 -p 3001",
+    "start": "next start",
+    "start:3001": "next start -H 127.0.0.1 -p 3001",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "headers:test": "node scripts/check-headers.mjs",
@@ -23,14 +24,15 @@
     "db:migrate": "prisma migrate deploy",
     "db:seed": "prisma generate && node scripts/seed.mjs",
     "s3:test": "node scripts/test-s3.mjs",
-  "s3:put": "node scripts/test-s3-put.mjs",
-  "aws:whoami": "node scripts/test-sts.mjs",
-  "presign:test": "node scripts/test-presign.mjs",
-  "presign:test:local": "node scripts/test-presign-local.mjs",
-  "sync:catalog": "tsx src/lib/jobs/catalogSync.ts",
-  "sync:orders": "tsx src/lib/jobs/orderStatusSync.ts"
-  ,"ping": "node scripts/ping.mjs"
-  ,"queue:worker": "tsx src/lib/queue/worker.ts"
+    "s3:put": "node scripts/test-s3-put.mjs",
+    "aws:whoami": "node scripts/test-sts.mjs",
+    "presign:test": "node scripts/test-presign.mjs",
+    "presign:test:local": "node scripts/test-presign-local.mjs",
+    "sync:catalog": "tsx src/lib/jobs/catalogSync.ts",
+    "sync:orders": "tsx src/lib/jobs/orderStatusSync.ts",
+    "ping": "node scripts/ping.mjs",
+    "queue:worker": "tsx src/lib/queue/worker.ts",
+    "test:cj": "tsx src/scripts/test-cj.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.645.0",
@@ -40,16 +42,17 @@
     "@prisma/client": "^5.17.0",
     "@tanstack/react-query": "^5.51.1",
     "bcryptjs": "^2.4.3",
+    "bullmq": "^5.10.0",
     "dotenv": "^17.2.1",
     "framer-motion": "^11.2.10",
+    "ioredis": "^5.4.1",
     "next": "14.2.5",
+    "node-fetch": "^3.3.2",
     "pg": "^8.16.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "stripe": "^16.5.0",
-  "zod": "^3.23.8",
-  "bullmq": "^5.10.0",
-  "ioredis": "^5.4.1"
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
@@ -64,7 +67,7 @@
     "postcss": "^8.4.38",
     "prisma": "^5.17.0",
     "tailwindcss": "^3.4.9",
-  "typescript": "5.5.4",
-  "tsx": "^4.16.2"
+    "tsx": "^4.16.2",
+    "typescript": "5.5.4"
   }
 }
