@@ -43,6 +43,7 @@ model Product {
   variants    Variant[]
   attributes  Attribute[]
   reviews     Review[]
+  supplierProducts SupplierProduct[]
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 }
@@ -152,6 +153,7 @@ model Order {
   postalCode  String?
   items       OrderItem[]
   payments    Payment[]
+  supplierOrders SupplierOrder[]
 }
 
 enum OrderStatus {

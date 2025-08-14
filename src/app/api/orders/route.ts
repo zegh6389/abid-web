@@ -7,7 +7,7 @@ export async function GET(req: Request) {
   const limit = Math.min(100, Number(searchParams.get('limit') || 50));
   const db = await getDb();
   if (!db) return NextResponse.json({ orders: [] });
-  const orders = await db.order.findMany({ orderBy: { createdAt: 'desc' }, take: limit, include: { items: true, payments: true } });
+  const orders = await db.order.findMany({ orderBy: { createdAt: 'desc' }, take: limit, include: { items: true, payments: true, supplierOrders: true } as any });
   return NextResponse.json({ orders });
 }
 

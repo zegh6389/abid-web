@@ -30,6 +30,7 @@
   "sync:catalog": "tsx src/lib/jobs/catalogSync.ts",
   "sync:orders": "tsx src/lib/jobs/orderStatusSync.ts"
   ,"ping": "node scripts/ping.mjs"
+  ,"queue:worker": "tsx src/lib/queue/worker.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.645.0",
@@ -46,7 +47,9 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "stripe": "^16.5.0",
-  "zod": "^3.23.8"
+  "zod": "^3.23.8",
+  "bullmq": "^5.10.0",
+  "ioredis": "^5.4.1"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",

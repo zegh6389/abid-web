@@ -5,7 +5,7 @@ import { UpdateOrderStatusSchema } from '@/lib/validation/order-status';
 export async function GET(_: Request, { params }: { params: { id: string } }) {
   const db = await getDb();
   if (!db) return NextResponse.json({ order: null }, { status: 503 });
-  const order = await db.order.findUnique({ where: { id: params.id }, include: { items: true, payments: true } });
+  const order = await db.order.findUnique({ where: { id: params.id }, include: { items: true, payments: true, supplierOrders: true } as any });
   if (!order) return NextResponse.json({ order: null }, { status: 404 });
   return NextResponse.json({ order });
 }

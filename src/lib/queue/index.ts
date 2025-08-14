@@ -12,7 +12,9 @@ function getQueue() {
   // Lazy require to avoid issues if not installed in environments without queue
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const { Queue } = require('bullmq');
-  const connection = redisUrl;
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const IORedis = require('ioredis');
+  const connection = new IORedis(redisUrl);
   _queue = new Queue('supplier', { connection });
   return _queue;
 }

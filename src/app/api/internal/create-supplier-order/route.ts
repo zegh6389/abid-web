@@ -1,5 +1,6 @@
 import { getDb } from '@/lib/db/client';
 import { SupplierRegistry } from '@/lib/suppliers';
+import { enqueuePlaceOrder } from '@/lib/queue';
 
 export async function POST(req: Request) {
   const prisma = await getDb();
@@ -44,22 +45,26 @@ export async function POST(req: Request) {
         title: i.title,
       })),
     } as const;
-    const placed = await adapter.placeOrder(payload as any);
-    // Create Supplier + SupplierOrder records
-    const supplier = await prisma.supplier.upsert({
-      where: { name: supplierType },
-      update: {},
-      create: { name: supplierType, type: supplierType as any, authJson: {} },
-    });
-    await prisma.supplierOrder.create({
-      data: {
-        order: { connect: { id: order.id } },
-        supplier: { connect: { id: supplier.id } },
-        supplierOrderId: placed.supplierOrderId,
-        status: placed.status as any,
-      },
-    });
-    results.push({ supplierType, supplierOrderId: placed.supplierOrderId });
+    if (process.env.REDIS_URL) {
+      await enqueuePlaceOrder({ supplierType, payload });
+      results.push({ supplierType, enqueued: true });
+    } else {
+      const placed = await adapter.placeOrder(payload as any);
+      const supplier = await prisma.supplier.upsert({
+        where: { name: supplierType },
+        update: {},
+        create: { name: supplierType, type: supplierType as any, authJson: {} },
+      });
+      await prisma.supplierOrder.create({
+        data: {
+          order: { connect: { id: order.id } },
+          supplier: { connect: { id: supplier.id } },
+          supplierOrderId: placed.supplierOrderId,
+          status: placed.status as any,
+        },
+      });
+      results.push({ supplierType, supplierOrderId: placed.supplierOrderId });
+    }
   }
 
   return new Response(JSON.stringify({ ok: true, results }), { headers: { 'content-type': 'application/json' } });
