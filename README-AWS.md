@@ -57,3 +57,16 @@ Next steps
 - Replace temp admin auth with Amazon Cognito Hosted UI or email/password stored in User table with Argon2 hash.
 - Build product variant editor UI, image uploads to S3, and webhooks to revalidate pages.
 - Add search with Amazon OpenSearch or Meilisearch for facets/typo tolerance.
+
+Supplier Integrations (Scaffold)
+--------------------------------
+- Environment: see `.env.example` for supplier credentials and webhook secrets.
+- Prisma: models Supplier, SupplierProduct, SupplierOrder added. Run migrations before deploy.
+- Jobs:
+	- `src/lib/jobs/catalogSync.ts` – syncs products from adapters into SupplierProduct.
+	- `src/lib/jobs/orderStatusSync.ts` – polls supplier order status for those without webhooks.
+- API:
+	- `POST /api/internal/create-supplier-order` – groups order items by supplier and calls adapters.
+	- Webhooks: `/api/webhooks/spocket`, `/api/webhooks/autods`, `/api/webhooks/modalyst`.
+	- Cron: `GET /api/cron/catalogSync` for Vercel Scheduled Functions.
+Note: Adapters are stubs. Implement each supplier in `src/lib/suppliers/*` and wire into `index.ts`.

@@ -171,6 +171,9 @@ model OrderItem {
   quantity  Int
   price     Decimal @db.Decimal(10,2)
   image     String?
+  // Supplier integration fields
+  supplierSku String?
+  supplierId  String?
 }
 
 model Payment {
@@ -192,4 +195,62 @@ enum PaymentStatus {
   FAILED
   CANCELED
   REFUNDED
+}
+
+// ------------------------------
+// Supplier Integrations
+// ------------------------------
+
+model Supplier {
+  id        String       @id @default(cuid())
+  name      String       @unique
+  type      SupplierType
+  active    Boolean      @default(true)
+  authJson  Json
+  products  SupplierProduct[]
+  orders    SupplierOrder[]
+  createdAt DateTime     @default(now())
+}
+
+model SupplierProduct {
+  id           String    @id @default(cuid())
+  supplier     Supplier  @relation(fields: [supplierId], references: [id])
+  supplierId   String
+  supplierSku  String
+  product      Product?  @relation(fields: [productId], references: [id])
+  productId    String?
+  cost         Decimal   @db.Decimal(10,2)
+  quantity     Int
+  lastSync     DateTime  @default(now())
+
+  @@index([supplierId, supplierSku], name: "idx_supplier_sku")
+}
+
+model SupplierOrder {
+  id              String                @id @default(cuid())
+  order           Order                 @relation(fields: [orderId], references: [id])
+  orderId         String                @unique
+  supplier        Supplier              @relation(fields: [supplierId], references: [id])
+  supplierId      String
+  supplierOrderId String
+  status          SupplierOrderStatus
+  trackingNumber  String?
+  carrier         String?
+  lastSync        DateTime              @default(now())
+}
+
+enum SupplierType {
+  SPOCKET
+  WHOLESALE2B
+  SYNCREE
+  CJDROPSHIPPING
+  MODALYST
+  AUTODS
+}
+
+enum SupplierOrderStatus {
+  PLACED
+  ACCEPTED
+  SHIPPED
+  CANCELLED
 }
